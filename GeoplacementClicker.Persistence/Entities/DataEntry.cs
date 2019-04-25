@@ -12,6 +12,8 @@ namespace GeoplacementClicker.Persistence.Entities
 
         public int SequenceNumber { get; set; }
 
+        public string EUI { get; set; }
+
         public int TimeStamp { get; set; }
 
         public int Fcnt { get; set; }

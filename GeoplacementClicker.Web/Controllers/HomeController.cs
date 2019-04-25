@@ -6,32 +6,40 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using GeoplacementClicker.Web.Models;
 using GeoplacementClicker.Persistence;
+using GeoplacementClicker.Web.Services;
 
 namespace GeoplacementClicker.Web.Controllers
 {
     public class HomeController : Controller
     {
         private readonly GeoplacementClickerDbContext _dbContext;
-        public HomeController(GeoplacementClickerDbContext dbContext)
+        private readonly IListenerService _listenerService;
+        public HomeController(GeoplacementClickerDbContext dbContext, IListenerService listenerService)
         {
             _dbContext = dbContext;
+            _listenerService = listenerService;
         }
 
         public async Task<IActionResult> Index()
         {
-            _dbContext.DataEntries.Add(new Persistence.Entities.DataEntry()
-            {
-                Data = "Some data"
-            });
-
-            await _dbContext.SaveChangesAsync();
-
             return View();
         }
 
-        public IActionResult Privacy()
+        [HttpGet]
+        public async Task<IActionResult> StartListening()
         {
-            return View();
+            await _listenerService.StartListening();
+
+            return Content($"Listening on websocket url: {await _listenerService.GetListeningUrl()}");
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> StopListening()
+        {
+            await _listenerService.StopListening();
+
+            return Content("Web socket closed.");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
