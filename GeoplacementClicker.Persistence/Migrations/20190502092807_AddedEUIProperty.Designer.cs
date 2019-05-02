@@ -4,14 +4,16 @@ using GeoplacementClicker.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace GeoplacementClicker.Persistence.Migrations
 {
     [DbContext(typeof(GeoplacementClickerDbContext))]
-    partial class GeoplacementClickerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190502092807_AddedEUIProperty")]
+    partial class AddedEUIProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,7 +51,7 @@ namespace GeoplacementClicker.Persistence.Migrations
 
                     b.Property<int>("TOA");
 
-                    b.Property<long>("TimeStamp");
+                    b.Property<int>("TimeStamp");
 
                     b.HasKey("Id");
 
@@ -58,10 +60,13 @@ namespace GeoplacementClicker.Persistence.Migrations
 
             modelBuilder.Entity("GeoplacementClicker.Persistence.Entities.Gateway", b =>
                 {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("DataEntryId");
+
+                    b.Property<string>("GWEUI");
 
                     b.Property<decimal>("Latitude");
 
@@ -69,13 +74,13 @@ namespace GeoplacementClicker.Persistence.Migrations
 
                     b.Property<int>("RSSI");
 
-                    b.Property<string>("SNR");
+                    b.Property<int>("SNR");
 
                     b.Property<int?>("TMMS");
 
                     b.Property<DateTime?>("Time");
 
-                    b.Property<long>("TimeStamp");
+                    b.Property<int>("TimeStamp");
 
                     b.HasKey("Id");
 
