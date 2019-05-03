@@ -10,6 +10,7 @@ using GeoplacementClicker.Web.Services;
 using System.Net.Http;
 using Newtonsoft.Json;
 using GeoplacementClicker.Persistence.Entities;
+using GeoplacementClicker.Web.Models.Home;
 
 namespace GeoplacementClicker.Web.Controllers
 {
@@ -27,20 +28,41 @@ namespace GeoplacementClicker.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View();
+            var viewModel = new HomeViewModel()
+            {
+                DataEntries = _dbContext.DataEntries.OrderByDescending(o => o.TimeStamp).Take(15).ToList()
+            };
+
+            return View(viewModel);
         }
 
-        public async Task<IActionResult> Location()
+        public async Task<IActionResult> Location(int? id)
         {
-            var latestEntry = _dbContext.DataEntries.OrderBy(o => o.TimeStamp).FirstOrDefault();
+            var viewModel = new LocationViewModel() {
+                DataEntryId = id
+            };
 
-            return View();
+            DataEntry dataEntry = null;
+
+            if (id == null)
+                dataEntry = _dbContext.DataEntries.OrderByDescending(o => o.TimeStamp).FirstOrDefault();
+            else
+                dataEntry = _dbContext.DataEntries.FirstOrDefault(de => de.Id == id);
+
+            if (dataEntry != null)
+            {
+                //Get locations from data property and set
+            }
+
+            return View(viewModel);
         }
 
         [HttpGet]
         public async Task<IActionResult> StartListening()
         {
-            await _listenerService.StartListening();
+            Task.Run(() => {
+                _listenerService.StartListening().Wait();
+            }); 
 
             return Content($"Listening on websocket url: {await _listenerService.GetListeningUrl()}");
         }

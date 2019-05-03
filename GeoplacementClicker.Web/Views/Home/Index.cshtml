@@ -1,8 +1,74 @@
-﻿@{
+﻿@model GeoplacementClicker.Web.Models.Home.HomeViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to Geoplacement clicker interface</h1>
-    <p></p>
+<div class="row mb-4">
+    <div class="container">
+        <button type="button" class="btn btn-success" onclick="startListeningOnClick();">Start listening</button>
+        <button type="button" class="btn btn-danger" onclick="stopListeningOnClick();">Stop listening</button>
+    </div>
 </div>
+
+<div class="row">
+    <div class="container">
+        <h2>Latest entries</h2>
+        <p>This table shows the latest entries from the geoplacement clicker module</p>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Command</th>
+                    <th>SequenceNumber</th>
+                    <th>EUI</th>
+                    <th>Time stamp</th>
+                    <th>FCNT</th>
+                    <th>Frequence</th>
+                    <th>TOA</th>
+                    <th>DR</th>
+                    <th>ACK</th>
+                    <th>SessionKeyId</th>
+                    <th>BAT</th>
+                    <th>Data</th>
+                    <th>Gateways count</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dataEntry in Model.DataEntries)
+                {
+                    <tr style="cursor:pointer" onclick="javascript:location.href='https://localhost:44364/Home/Location?id=@dataEntry.Id'">
+                        <td>@dataEntry.Command</td>
+                        <td>@dataEntry.SequenceNumber</td>
+                        <td>@dataEntry.EUI</td>
+                        <td>@dataEntry.TimeStamp</td>
+                        <td>@dataEntry.Fcnt</td>
+                        <td>@dataEntry.Frequence</td>
+                        <td>@dataEntry.TOA</td>
+                        <td>@dataEntry.DR</td>
+                        <td>@dataEntry.ACK</td>
+                        <td>@dataEntry.SessionKeyId</td>
+                        <td>@dataEntry.BAT</td>
+                        <td>@dataEntry.Data</td>
+                        <td>@(dataEntry.Gateways != null ? dataEntry.Gateways.Count().ToString() : "0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts  {
+<script>
+    function startListeningOnClick() {
+        $.get("https://localhost:44364/Home/StartListening", function (data) {
+            alert(data);
+        });
+    }
+
+    function stopListeningOnClick() {
+         $.get( "https://localhost:44364/Home/StopListening", function( data ) {
+          alert( data );
+        });
+    }
+
+</script>
+}

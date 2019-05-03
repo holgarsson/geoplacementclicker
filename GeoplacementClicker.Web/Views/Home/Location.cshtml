@@ -1,9 +1,9 @@
-﻿
+﻿@model  GeoplacementClicker.Web.Models.Home.LocationViewModel
 @{
     ViewData["Title"] = "Location";
 }
 
-<h1>Location</h1>
+<h1>Google Maps</h1>
 <style>
     /* Set the size of the div element that contains the map */
     #map {
@@ -12,7 +12,7 @@
     }
 </style>
 
-<h3>My Google Maps Demo</h3>
+<h3>@(Model.DataEntryId == null ? "Showing latest location on map": "Showing location from entry ID: " + Model.DataEntryId)</h3>
 <!--The div element for the map -->
 <div id="map"></div>
 <script>
