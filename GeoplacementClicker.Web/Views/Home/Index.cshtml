@@ -17,39 +17,23 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>Command</th>
-                    <th>SequenceNumber</th>
+                    <th>Id</th>
                     <th>EUI</th>
-                    <th>Time stamp</th>
-                    <th>FCNT</th>
-                    <th>Frequence</th>
-                    <th>TOA</th>
-                    <th>DR</th>
-                    <th>ACK</th>
-                    <th>SessionKeyId</th>
-                    <th>BAT</th>
-                    <th>Data</th>
-                    <th>Gateways count</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var dataEntry in Model.DataEntries)
                 {
-                    <tr style="cursor:pointer" onclick="javascript:location.href='https://localhost:44364/Home/Location?id=@dataEntry.Id'">
-                        <td>@dataEntry.Command</td>
-                        <td>@dataEntry.SequenceNumber</td>
-                        <td>@dataEntry.EUI</td>
-                        <td>@dataEntry.TimeStamp</td>
-                        <td>@dataEntry.Fcnt</td>
-                        <td>@dataEntry.Frequence</td>
-                        <td>@dataEntry.TOA</td>
-                        <td>@dataEntry.DR</td>
-                        <td>@dataEntry.ACK</td>
-                        <td>@dataEntry.SessionKeyId</td>
-                        <td>@dataEntry.BAT</td>
-                        <td>@dataEntry.Data</td>
-                        <td>@(dataEntry.Gateways != null ? dataEntry.Gateways.Count().ToString() : "0")</td>
-                    </tr>
+                <tr @((dataEntry.IsSOS.HasValue && dataEntry.IsSOS.Value == true) ? " class=table-danger " : "")>
+                    <td>@dataEntry.Id</td>
+                    <td>@dataEntry.EUI</td>
+                    <td>@(dataEntry.Latitude != null ? dataEntry.Latitude.ToString() : "Unknown")</td>
+                    <td>@(dataEntry.Longitude != null ? dataEntry.Longitude.ToString() : "Unknown") </td>
+                    <td><a asp-action="Details" asp-route-id="@dataEntry.Id">Details</a> | <a asp-action="Location" asp-route-id="@dataEntry.Id">Show on map</a></td>
+                </tr>
                 }
             </tbody>
         </table>
@@ -68,7 +52,13 @@
          $.get( "https://localhost:44364/Home/StopListening", function( data ) {
           alert( data );
         });
-    }
+        }
+
+    $(function () {
+        setTimeout(function() {
+          location.reload();
+        }, 3000);
+    });
 
 </script>
 }

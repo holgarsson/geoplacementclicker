@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace GeoplacementClicker.Persistence.Entities
@@ -50,5 +51,14 @@ namespace GeoplacementClicker.Persistence.Entities
 
         [JsonProperty(PropertyName = "gws")]
         public IEnumerable<Gateway> Gateways { get; set; }
+
+        [NotMapped]
+        public decimal? Longitude { get; set; }
+
+        [NotMapped]
+        public decimal? Latitude { get; set; }
+
+        [NotMapped]
+        public bool? IsSOS { get; set; }
     }
 }

@@ -11,6 +11,8 @@ using System.Net.Http;
 using Newtonsoft.Json;
 using GeoplacementClicker.Persistence.Entities;
 using GeoplacementClicker.Web.Models.Home;
+using Microsoft.Extensions.Configuration;
+using System.Text;
 
 namespace GeoplacementClicker.Web.Controllers
 {
@@ -20,17 +22,24 @@ namespace GeoplacementClicker.Web.Controllers
         private readonly IListenerService _listenerService;
         private HttpClient _httpClient = new HttpClient();
 
-        public HomeController(GeoplacementClickerDbContext dbContext, IListenerService listenerService)
+        public HomeController(GeoplacementClickerDbContext dbContext,
+            IListenerService listenerService,
+            IConfiguration configuration)
         {
             _dbContext = dbContext;
             _listenerService = listenerService;
+
         }
 
         public async Task<IActionResult> Index()
         {
+            List<DataEntry> dataEntries = _dbContext.DataEntries.OrderByDescending(o => o.TimeStamp).Take(15).ToList();
+
+            SetLongitudeLatitude(dataEntries);
+
             var viewModel = new HomeViewModel()
             {
-                DataEntries = _dbContext.DataEntries.OrderByDescending(o => o.TimeStamp).Take(15).ToList()
+                DataEntries = dataEntries
             };
 
             return View(viewModel);
@@ -38,9 +47,7 @@ namespace GeoplacementClicker.Web.Controllers
 
         public async Task<IActionResult> Location(int? id)
         {
-            var viewModel = new LocationViewModel() {
-                DataEntryId = id
-            };
+            var viewModel = new LocationViewModel();
 
             DataEntry dataEntry = null;
 
@@ -51,8 +58,34 @@ namespace GeoplacementClicker.Web.Controllers
 
             if (dataEntry != null)
             {
-                //Get locations from data property and set
+                SetLongitudeLatitude(ref dataEntry);
             }
+
+            if (dataEntry.Latitude.HasValue && dataEntry.Longitude.HasValue)
+            {
+                viewModel.Latitude = dataEntry.Latitude.Value;
+                viewModel.Longitude = dataEntry.Longitude.Value;
+                viewModel.EUI = dataEntry.EUI;
+                viewModel.DataEntryId = dataEntry.Id;
+            }
+
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var dataEntry = _dbContext.DataEntries.FirstOrDefault(de => de.Id == id);
+
+            if (dataEntry != null)
+            {
+                SetLongitudeLatitude(ref dataEntry);
+            }
+
+            var viewModel = new DetailsViewModel()
+            {
+                DataEntry = dataEntry
+            };
 
             return View(viewModel);
         }
@@ -107,12 +140,46 @@ namespace GeoplacementClicker.Web.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        private DateTime UnixTimeStampToDateTime(double unixTimeStamp)
+        private void SetLongitudeLatitude(ref DataEntry dataEntry)
         {
-            // Unix timestamp is seconds past epoch
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
-            return dtDateTime;
+            var rawData = FromHexString(dataEntry.Data);
+            string[] data = rawData.Split(',');
+            if (data.Length != 3)
+                return;
+
+            dataEntry.IsSOS = data[0].Contains("S");
+            dataEntry.Latitude = decimal.Parse(data[1]);
+            dataEntry.Longitude = decimal.Parse(data[2]);
+        }
+
+        private void SetLongitudeLatitude(List<DataEntry> dataEntries)
+        {
+            foreach(var dataEntry in dataEntries)
+            {
+                var rawData = FromHexString(dataEntry.Data);
+                string[] data = rawData.Split(',');
+                if (data.Length != 3)
+                    return;
+
+                dataEntry.IsSOS = data[0].Contains("S");
+                dataEntry.Latitude = decimal.Parse(data[1]);
+                dataEntry.Longitude = decimal.Parse(data[2]);
+            }
+        }
+
+        string FromHexString(string hexString)
+        {
+            if (hexString == null || (hexString.Length & 1) == 1)
+            {
+                throw new ArgumentException();
+            }
+            var sb = new StringBuilder();
+            for (var i = 0; i < hexString.Length; i += 2)
+            {
+                var hexChar = hexString.Substring(i, 2);
+                sb.Append((char)Convert.ToByte(hexChar, 16));
+            }
+            return sb.ToString();
         }
     }
 }

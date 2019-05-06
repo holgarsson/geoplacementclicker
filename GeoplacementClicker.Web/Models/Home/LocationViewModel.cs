@@ -13,5 +13,7 @@ namespace GeoplacementClicker.Web.Models.Home
         public decimal Latitude { get; set; }
 
         public int? DataEntryId { get; set; }
+
+        public string EUI { get; set; }
     }
 }
