@@ -171,7 +171,7 @@ namespace GeoplacementClicker.Web.Controllers
         {
             if (hexString == null || (hexString.Length & 1) == 1)
             {
-                throw new ArgumentException();
+                return string.Empty;
             }
             var sb = new StringBuilder();
             for (var i = 0; i < hexString.Length; i += 2)
