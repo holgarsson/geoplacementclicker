@@ -1,7 +1,7 @@
 #include "rn2xx3.h"
 #include "TinyGPS++.h"
 
-// Lora
+// Setting up everything needed for LoRa.
 const int TxL = 17;
 const int RxL = 16;
 const int RST = 23;
@@ -15,7 +15,7 @@ boolean connectResult = false;
 HardwareSerial sLORA(1);
 rn2xx3 LORA(sLORA);
 
-// GPS
+// Setting up everything needed for GPS.
 const int TxG = 18;
 const int RxG = 19;
 const int RLED = 2;
@@ -48,28 +48,28 @@ void setup() {
 
   Serial.begin(115200);
   
-  sLORA.begin(57600, SERIAL_8N1, RxL, TxL);
+  sLORA.begin(57600, SERIAL_8N1, RxL, TxL); // Starting HW serial for LoRa.
 
   Serial.println("Ready");
 
-  Serial.println("Resetting rn2483");
+  Serial.println("Resetting rn2483"); // Resets the LoRa module.
   digitalWrite(RST, LOW);
   delay(500);
   digitalWrite(RST, HIGH);
   delay(500);
 
   Serial.println("Setting up LORA");
-  Serial.println(LORA.sysver());
-  Serial.println(hweui);
+  Serial.println(LORA.sysver());  // Printing some info to check if connection is OK.
+  Serial.println(hweui); // printing server setup information
   Serial.println(appeui);
   Serial.println(appKey);
 
   Serial.println("Connecting to server");
-  connectResult = LORA.initOTAA(appeui, appKey);
+  connectResult = LORA.initOTAA(appeui, appKey); //Using OTAA to connect to the server.
   while(!connectResult) {
     Serial.println("Unable to join.");
     delay(5000); //delay 5 seconds before retry
-    connectResult = LORA.initOTAA(appeui, appKey);
+    connectResult = LORA.initOTAA(appeui, appKey); // Loop runs until lora module reports that it has connected to the server.
   }
   Serial.println("Successfully joined");
   digitalWrite(GLED, HIGH);
@@ -77,7 +77,7 @@ void setup() {
   digitalWrite(GLED, LOW);
   
   Serial.println("Starting GPS and running code");
-  sGPS.begin(9600, SERIAL_8N1, RxG, TxG);
+  sGPS.begin(9600, SERIAL_8N1, RxG, TxG); // Setting up HW serial for GPS.
 }
 
 void loop() {
@@ -92,35 +92,35 @@ void loop() {
     buttonState = digitalRead(button);
   }
 
-  if (interval > offTime) {
-      readGPS();
+  if (interval > offTime) { // compares how long the button was pressed to the specified time.
+      readGPS(); // runs the function that verifies and prints the GPS coordinates.
       if (valid) {
         digitalWrite(GLED, HIGH);
-        addSOS = true;
-        sendLora();
+        addSOS = true; // specifies which of the two packages should be sent.
+        sendLora(); // runs the function that transmits the package
         digitalWrite(GLED, LOW);
       } else {
-        flashRED();
+        flashRED(); // flashes the red led if coordinates was not verified
       }
     } else if (pushed) {
-      readGPS();
+      readGPS(); // runs the function that verifies and prints the GPS coordinates.
       if (valid) {
         digitalWrite(GLED, HIGH);
-        addSOS = false;
-        sendLora();
+        addSOS = false; // specifies which of the two packages should be sent.
+        sendLora(); // runs the function that transmits the package
         digitalWrite(GLED, LOW);
       } else {
-        flashRED();
+        flashRED(); // flashes the red led if coordinates was not verified
       }
    }
    pushed = false;
 }
 
 void readGPS() {
-  while (sGPS.available()) {
-    if (GPS.encode(sGPS.read())) {
+  while (sGPS.available()) { // checks if anything is available in the buffer
+    if (GPS.encode(sGPS.read())) { // encodes the data from the GPS module
       Serial.print("Location: ");
-      if (GPS.location.isValid()) {
+      if (GPS.location.isValid()) { // checks if valid
         Serial.print(GPS.location.lat(), 6);
         Serial.print(", ");
         Serial.println(GPS.location.lng(), 6);
@@ -134,15 +134,15 @@ void readGPS() {
 }
 
 void sendLora() {
-  latitude = String(GPS.location.lat(), 6);
+  latitude = String(GPS.location.lat(), 6); // saves the current location with 6 decimals
   longitude = String(GPS.location.lng(), 6);
-  if (addSOS) {
+  if (addSOS) { // looks for what package to sent, based on how long the button was pressed
     Serial.println("Sending: SOS "  + latitude + ", " + longitude);
-    LORA.txUncnf("S," + latitude + "," + longitude);
+    LORA.txUncnf("S," + latitude + "," + longitude); // command to transmit using the lora module
     Serial.println("SENT");
   } else {
     Serial.println("Sending: " + latitude + ", " + longitude);
-    LORA.txUncnf("N," + latitude + "," + longitude);
+    LORA.txUncnf("N," + latitude + "," + longitude); // command to transmit using the lora module
     Serial.println("SENT");
   }
 }
